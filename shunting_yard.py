@@ -209,3 +209,40 @@ def shunting_yard(expression: str) -> list[str]:
         output.append(operator_stack.pop())
 
     return output
+
+
+def main() -> None:
+    """CLI интерфейс для преобразования выражений в обратную польскую нотацию."""
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description='Преобразует арифметическое выражение в обратную польскую нотацию (ПОЛИЗ)',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='Пример использования:\n'
+               '  python3 shunting_yard.py "3 + 4 * 2"\n'
+               '  python3 shunting_yard.py "sin(max(2, 3) / 3 * pi)"\n'
+               '  python3 shunting_yard.py "(3 + 4) * 2"'
+    )
+    parser.add_argument(
+        'expression',
+        type=str,
+        nargs='?',
+        help='Арифметическое выражение в инфиксной записи'
+    )
+
+    args = parser.parse_args()
+
+    if args.expression is None:
+        parser.print_help()
+        sys.exit(0)
+
+    try:
+        result = shunting_yard(args.expression)
+        print(' '.join(result))
+    except ValueError as e:
+        parser.error(str(e))
+
+
+if __name__ == '__main__':
+    main()
