@@ -51,11 +51,10 @@ class TestShuntingYard(unittest.TestCase):
         """Тест сложного выражения с комбинацией операций."""
         self.assertEqual(
             shunting_yard("3 + 4 * 2 - 5 / 1"),
-            ["3", "4", "2", "*", "+", "5", "1", "/", "-"]
+            ["3", "4", "2", "*", "+", "5", "1", "/", "-"],
         )
         self.assertEqual(
-            shunting_yard("(3 + 4) * (2 - 5)"),
-            ["3", "4", "+", "2", "5", "-", "*"]
+            shunting_yard("(3 + 4) * (2 - 5)"), ["3", "4", "+", "2", "5", "-", "*"]
         )
 
     def test_single_number(self):
@@ -79,8 +78,38 @@ class TestShuntingYard(unittest.TestCase):
 
     def test_wikipedia_case_with_power(self):
         """Тест сложного выражения с возведением в степень из примера."""
-        self.assertEqual(shunting_yard("3 + 4 * 2 / (1 - 5) ^ 2 ^ 3"), ["3", "4", "2", "*", "1", "5", "-", "2", "3", "^", "^", "/", "+"])
+        self.assertEqual(
+            shunting_yard("3 + 4 * 2 / (1 - 5) ^ 2 ^ 3"),
+            ["3", "4", "2", "*", "1", "5", "-", "2", "3", "^", "^", "/", "+"],
+        )
+
+    def test_sin_function(self):
+        """Тест функции sin."""
+        self.assertEqual(shunting_yard("sin(0)"), ["0", "sin"])
+        self.assertEqual(shunting_yard("sin(pi)"), ["pi", "sin"])
+
+    def test_max_function(self):
+        """Тест функции max."""
+        self.assertEqual(shunting_yard("max(2, 3)"), ["2", "3", "max"])
+        self.assertEqual(shunting_yard("max(1, 5)"), ["1", "5", "max"])
+
+    def test_pi_constant(self):
+        """Тест константы pi."""
+        self.assertEqual(shunting_yard("pi"), ["pi"])
+        self.assertEqual(shunting_yard("pi * 2"), ["pi", "2", "*"])
+
+    def test_functions_with_expressions(self):
+        """Тест функций с выражениями."""
+        self.assertEqual(shunting_yard("sin(2 + 3)"), ["2", "3", "+", "sin"])
+        self.assertEqual(shunting_yard("max(2 * 3, 4)"), ["2", "3", "*", "4", "max"])
+
+    def test_wikipedia_case_with_sin_max_and_pi(self):
+        """Тест сложного выражения с функциями и константой."""
+        self.assertEqual(
+            shunting_yard("sin( max(2, 3) / 3 * pi )"),
+            ["2", "3", "max", "3", "/", "pi", "*", "sin"]
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

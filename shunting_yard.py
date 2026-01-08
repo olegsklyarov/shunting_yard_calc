@@ -3,13 +3,14 @@ def tokenize(expression: str) -> list[str]:
     Парсит входную строку в список токенов.
 
     Поддерживает оба формата: с пробелами и без пробелов.
-    Обрабатывает целые числа, операторы: +, -, *, /, ^ и круглые скобки: (, ).
+    Обрабатывает целые числа, операторы: +, -, *, /, ^, функции (sin, max),
+    константы (pi) и круглые скобки: (, ).
 
     Args:
         expression: Арифметическое выражение в виде строки
 
     Returns:
-        Список токенов (числа, операторы, скобки)
+        Список токенов (числа, операторы, функции, константы, скобки)
     """
     tokens: list[str] = []
     i = 0
@@ -21,7 +22,7 @@ def tokenize(expression: str) -> list[str]:
             i += 1
             continue
 
-        if char in '()+-*/^':
+        if char in '()+-*/^,':
             tokens.append(char)
             i += 1
         elif char.isdigit():
@@ -30,6 +31,12 @@ def tokenize(expression: str) -> list[str]:
                 num_str += expression[i]
                 i += 1
             tokens.append(num_str)
+        elif char.isalpha():
+            identifier = ''
+            while i < len(expression) and expression[i].isalpha():
+                identifier += expression[i]
+                i += 1
+            tokens.append(identifier)
         else:
             raise ValueError(f"Неизвестный символ: {char}")
 
@@ -38,15 +45,17 @@ def tokenize(expression: str) -> list[str]:
 
 def get_precedence(operator: str) -> int:
     """
-    Возвращает приоритет оператора.
+    Возвращает приоритет оператора или функции.
 
     Args:
-        operator: Оператор (+, -, *, /, ^)
+        operator: Оператор (+, -, *, /, ^) или функция (sin, max)
 
     Returns:
-        Приоритет оператора (1 для +, -, 2 для *, /, 3 для ^)
+        Приоритет оператора (1 для +, -, 2 для *, /, 3 для ^, 4 для функций)
     """
-    if operator == '^':
+    if is_function(operator):
+        return 4
+    elif operator == '^':
         return 3
     elif operator in ('*', '/'):
         return 2
@@ -81,6 +90,45 @@ def is_right_associative(operator: str) -> bool:
     return operator == '^'
 
 
+def is_function(token: str) -> bool:
+    """
+    Проверяет, является ли токен функцией.
+
+    Args:
+        token: Токен для проверки
+
+    Returns:
+        True, если токен является функцией (sin, max)
+    """
+    return token in ('sin', 'max')
+
+
+def is_constant(token: str) -> bool:
+    """
+    Проверяет, является ли токен константой.
+
+    Args:
+        token: Токен для проверки
+
+    Returns:
+        True, если токен является константой (pi)
+    """
+    return token == 'pi'
+
+
+def is_comma(token: str) -> bool:
+    """
+    Проверяет, является ли токен запятой.
+
+    Args:
+        token: Токен для проверки
+
+    Returns:
+        True, если токен является запятой
+    """
+    return token == ','
+
+
 def is_left_parenthesis(token: str) -> bool:
     """
     Проверяет, является ли токен открывающей скобкой.
@@ -112,7 +160,8 @@ def shunting_yard(expression: str) -> list[str]:
     Преобразует арифметическое выражение в инфиксной записи в обратную польскую нотацию (ПОЛИЗ).
 
     Реализует алгоритм сортировочной станции (Shunting Yard).
-    Поддерживает целые числа, операции +, -, *, /, ^ и круглые скобки.
+    Поддерживает целые числа, операции +, -, *, /, ^, функции (sin, max),
+    константы (pi) и круглые скобки.
 
     Args:
         expression: Арифметическое выражение в инфиксной записи
@@ -127,6 +176,8 @@ def shunting_yard(expression: str) -> list[str]:
     for token in tokens:
         if token.isdigit():
             output.append(token)
+        elif is_constant(token):
+            output.append(token)
         elif is_left_parenthesis(token):
             operator_stack.append(token)
         elif is_right_parenthesis(token):
@@ -134,11 +185,21 @@ def shunting_yard(expression: str) -> list[str]:
                 output.append(operator_stack.pop())
             if operator_stack:
                 operator_stack.pop()
+            # Если на вершине стека функция, переносим её в выход
+            if operator_stack and is_function(operator_stack[-1]):
+                output.append(operator_stack.pop())
+        elif is_comma(token):
+            # Запятая разделяет аргументы функции, обрабатываем до открывающей скобки
+            while operator_stack and not is_left_parenthesis(operator_stack[-1]):
+                output.append(operator_stack.pop())
+        elif is_function(token):
+            operator_stack.append(token)
         elif is_operator(token):
             # Для правоассоциативных операторов (^) используем < вместо <=
             # Для левоассоциативных операторов используем <=
             while (operator_stack and
                    not is_left_parenthesis(operator_stack[-1]) and
+                   not is_function(operator_stack[-1]) and
                    (get_precedence(token) < get_precedence(operator_stack[-1]) if is_right_associative(token)
                     else get_precedence(token) <= get_precedence(operator_stack[-1]))):
                 output.append(operator_stack.pop())
