@@ -204,6 +204,10 @@ def shunting_yard(expression: str) -> list[str]:
                     else get_precedence(token) <= get_precedence(operator_stack[-1]))):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
+        else:
+            # Неизвестный идентификатор
+            if token.isalpha():
+                raise ValueError(f"Неизвестная функция или константа: {token}")
 
     while operator_stack:
         output.append(operator_stack.pop())

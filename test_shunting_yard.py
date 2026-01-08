@@ -110,6 +110,12 @@ class TestShuntingYard(unittest.TestCase):
             ["2", "3", "max", "3", "/", "pi", "*", "sin"]
         )
 
+    def test_unknown_function_error(self):
+        """Тест ошибки при парсинге неизвестной функции."""
+        with self.assertRaises(ValueError) as context:
+            shunting_yard("sin(90) / cos(90)")
+        self.assertIn("Неизвестная функция или константа: cos", str(context.exception))
+
 
 if __name__ == "__main__":
     unittest.main()
