@@ -3,7 +3,7 @@ def tokenize(expression: str) -> list[str]:
     Парсит входную строку в список токенов.
 
     Поддерживает оба формата: с пробелами и без пробелов.
-    Обрабатывает целые числа, операторы: +, -, *, /, ^, функции (sin, max),
+    Обрабатывает целые числа, операторы: +, -, *, /, ^, функции (sin),
     константы (pi) и круглые скобки: (, ).
 
     Args:
@@ -22,17 +22,17 @@ def tokenize(expression: str) -> list[str]:
             i += 1
             continue
 
-        if char in '()+-*/^,':
+        if char in "()+-*/^":
             tokens.append(char)
             i += 1
         elif char.isdigit():
-            num_str = ''
+            num_str = ""
             while i < len(expression) and expression[i].isdigit():
                 num_str += expression[i]
                 i += 1
             tokens.append(num_str)
         elif char.isalpha():
-            identifier = ''
+            identifier = ""
             while i < len(expression) and expression[i].isalpha():
                 identifier += expression[i]
                 i += 1
@@ -48,18 +48,18 @@ def get_precedence(operator: str) -> int:
     Возвращает приоритет оператора или функции.
 
     Args:
-        operator: Оператор (+, -, *, /, ^) или функция (sin, max)
+        operator: Оператор (+, -, *, /, ^) или функция (sin)
 
     Returns:
         Приоритет оператора (1 для +, -, 2 для *, /, 3 для ^, 4 для функций)
     """
     if is_function(operator):
         return 4
-    elif operator == '^':
+    elif operator == "^":
         return 3
-    elif operator in ('*', '/'):
+    elif operator in ("*", "/"):
         return 2
-    elif operator in ('+', '-'):
+    elif operator in ("+", "-"):
         return 1
     return 0
 
@@ -74,7 +74,7 @@ def is_operator(token: str) -> bool:
     Returns:
         True, если токен является оператором
     """
-    return token in ('+', '-', '*', '/', '^')
+    return token in ("+", "-", "*", "/", "^")
 
 
 def is_right_associative(operator: str) -> bool:
@@ -87,7 +87,7 @@ def is_right_associative(operator: str) -> bool:
     Returns:
         True, если оператор правоассоциативен (^)
     """
-    return operator == '^'
+    return operator == "^"
 
 
 def is_function(token: str) -> bool:
@@ -98,9 +98,9 @@ def is_function(token: str) -> bool:
         token: Токен для проверки
 
     Returns:
-        True, если токен является функцией (sin, max)
+        True, если токен является функцией (sin)
     """
-    return token in ('sin', 'max')
+    return token == "sin"
 
 
 def is_constant(token: str) -> bool:
@@ -113,20 +113,7 @@ def is_constant(token: str) -> bool:
     Returns:
         True, если токен является константой (pi)
     """
-    return token == 'pi'
-
-
-def is_comma(token: str) -> bool:
-    """
-    Проверяет, является ли токен запятой.
-
-    Args:
-        token: Токен для проверки
-
-    Returns:
-        True, если токен является запятой
-    """
-    return token == ','
+    return token == "pi"
 
 
 def is_left_parenthesis(token: str) -> bool:
@@ -139,7 +126,7 @@ def is_left_parenthesis(token: str) -> bool:
     Returns:
         True, если токен является открывающей скобкой
     """
-    return token == '('
+    return token == "("
 
 
 def is_right_parenthesis(token: str) -> bool:
@@ -152,7 +139,7 @@ def is_right_parenthesis(token: str) -> bool:
     Returns:
         True, если токен является закрывающей скобкой
     """
-    return token == ')'
+    return token == ")"
 
 
 def shunting_yard(expression: str) -> list[str]:
@@ -160,7 +147,7 @@ def shunting_yard(expression: str) -> list[str]:
     Преобразует арифметическое выражение в инфиксной записи в обратную польскую нотацию (ПОЛИЗ).
 
     Реализует алгоритм сортировочной станции (Shunting Yard).
-    Поддерживает целые числа, операции +, -, *, /, ^, функции (sin, max),
+    Поддерживает целые числа, операции +, -, *, /, ^, функции (sin),
     константы (pi) и круглые скобки.
 
     Args:
@@ -188,20 +175,21 @@ def shunting_yard(expression: str) -> list[str]:
             # Если на вершине стека функция, переносим её в выход
             if operator_stack and is_function(operator_stack[-1]):
                 output.append(operator_stack.pop())
-        elif is_comma(token):
-            # Запятая разделяет аргументы функции, обрабатываем до открывающей скобки
-            while operator_stack and not is_left_parenthesis(operator_stack[-1]):
-                output.append(operator_stack.pop())
         elif is_function(token):
             operator_stack.append(token)
         elif is_operator(token):
             # Для правоассоциативных операторов (^) используем < вместо <=
             # Для левоассоциативных операторов используем <=
-            while (operator_stack and
-                   not is_left_parenthesis(operator_stack[-1]) and
-                   not is_function(operator_stack[-1]) and
-                   (get_precedence(token) < get_precedence(operator_stack[-1]) if is_right_associative(token)
-                    else get_precedence(token) <= get_precedence(operator_stack[-1]))):
+            while (
+                operator_stack
+                and not is_left_parenthesis(operator_stack[-1])
+                and not is_function(operator_stack[-1])
+                and (
+                    get_precedence(token) < get_precedence(operator_stack[-1])
+                    if is_right_associative(token)
+                    else get_precedence(token) <= get_precedence(operator_stack[-1])
+                )
+            ):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
         else:
@@ -217,36 +205,18 @@ def shunting_yard(expression: str) -> list[str]:
 
 def main() -> None:
     """CLI интерфейс для преобразования выражений в обратную польскую нотацию."""
-    import argparse
     import sys
 
-    parser = argparse.ArgumentParser(
-        description='Преобразует арифметическое выражение в обратную польскую нотацию (ПОЛИЗ)',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='Пример использования:\n'
-               '  python3 shunting_yard.py "3 + 4 * 2"\n'
-               '  python3 shunting_yard.py "sin(max(2, 3) / 3 * pi)"\n'
-               '  python3 shunting_yard.py "(3 + 4) * 2"'
-    )
-    parser.add_argument(
-        'expression',
-        type=str,
-        nargs='?',
-        help='Арифметическое выражение в инфиксной записи'
-    )
-
-    args = parser.parse_args()
-
-    if args.expression is None:
-        parser.print_help()
-        sys.exit(0)
-
     try:
-        result = shunting_yard(args.expression)
-        print(' '.join(result))
+        expression = sys.stdin.read().strip()
+        if not expression:
+            return
+        result = shunting_yard(expression)
+        print(" ".join(result))
     except ValueError as e:
-        parser.error(str(e))
+        print(f"Ошибка: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

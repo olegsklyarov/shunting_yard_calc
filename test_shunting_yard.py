@@ -88,11 +88,6 @@ class TestShuntingYard(unittest.TestCase):
         self.assertEqual(shunting_yard("sin(0)"), ["0", "sin"])
         self.assertEqual(shunting_yard("sin(pi)"), ["pi", "sin"])
 
-    def test_max_function(self):
-        """Тест функции max."""
-        self.assertEqual(shunting_yard("max(2, 3)"), ["2", "3", "max"])
-        self.assertEqual(shunting_yard("max(1, 5)"), ["1", "5", "max"])
-
     def test_pi_constant(self):
         """Тест константы pi."""
         self.assertEqual(shunting_yard("pi"), ["pi"])
@@ -101,13 +96,12 @@ class TestShuntingYard(unittest.TestCase):
     def test_functions_with_expressions(self):
         """Тест функций с выражениями."""
         self.assertEqual(shunting_yard("sin(2 + 3)"), ["2", "3", "+", "sin"])
-        self.assertEqual(shunting_yard("max(2 * 3, 4)"), ["2", "3", "*", "4", "max"])
 
-    def test_wikipedia_case_with_sin_max_and_pi(self):
+    def test_wikipedia_case_with_sin_and_pi(self):
         """Тест сложного выражения с функциями и константой."""
         self.assertEqual(
-            shunting_yard("sin( max(2, 3) / 3 * pi )"),
-            ["2", "3", "max", "3", "/", "pi", "*", "sin"]
+            shunting_yard("sin(2 + 3) / 3 * pi"),
+            ["2", "3", "+", "sin", "3", "/", "pi", "*"],
         )
 
     def test_unknown_function_error(self):
