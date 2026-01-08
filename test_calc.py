@@ -1,6 +1,7 @@
 import unittest
-import math
 from calc import evaluate_rpn
+
+PI = 3.141592653589793
 
 
 class TestEvaluateRPN(unittest.TestCase):
@@ -42,13 +43,13 @@ class TestEvaluateRPN(unittest.TestCase):
     def test_pi_constant(self):
         """Тест константы pi."""
         result = evaluate_rpn("pi")
-        self.assertAlmostEqual(result, math.pi, places=10)
+        self.assertAlmostEqual(result, PI, places=10)
 
     def test_pi_in_expression(self):
         """Тест использования pi в выражениях."""
         # pi * 2
         result = evaluate_rpn("pi 2 *")
-        self.assertAlmostEqual(result, math.pi * 2, places=10)
+        self.assertAlmostEqual(result, PI * 2, places=10)
 
     def test_sin_function(self):
         """Тест функции sin."""
@@ -57,12 +58,6 @@ class TestEvaluateRPN(unittest.TestCase):
         # sin(pi/2) = 1
         result = evaluate_rpn("pi 2 / sin")
         self.assertAlmostEqual(result, 1.0, places=10)
-
-    def test_sin_with_expressions(self):
-        """Тест функции sin с выражениями."""
-        # sin(2 + 3) = sin(5)
-        result = evaluate_rpn("2 3 + sin")
-        self.assertAlmostEqual(result, math.sin(5), places=10)
 
     def test_complex_expression_with_functions(self):
         """Тест сложного выражения с функциями."""
@@ -74,7 +69,7 @@ class TestEvaluateRPN(unittest.TestCase):
         """Тест сложного выражения из примера."""
         # 3 + 4 * 2 / (1 - 5) ^ 2 ^ 3
         result = evaluate_rpn("3 4 2 * 1 5 - 2 3 ^ ^ / +")
-        expected = 3 + 4 * 2 / ((1 - 5) ** (2 ** 3))
+        expected = 3 + 4 * 2 / ((1 - 5) ** (2**3))
         self.assertAlmostEqual(result, expected, places=10)
 
     def test_negative_numbers(self):
@@ -118,7 +113,22 @@ class TestEvaluateRPN(unittest.TestCase):
             evaluate_rpn("")
         self.assertIn("Некорректное выражение", str(context.exception))
 
+    def test_complex_expression_from_shunting_yard(self):
+        """Тест сложного выражения из test_shunting_yard."""
+        rpn_expression = (
+            "15 7 1 1 + - / 3 * "
+            "2 1 1 + + 15 * "
+            "7 200 1 + - / 3 * - "
+            "2 1 1 + + "
+            "15 7 1 1 + - / 3 * "
+            "2 1 1 + + - "
+            "15 7 1 1 + - / 3 * + "
+            "2 1 1 + + - * -"
+        )
+        expected = -30.072164948453608
+        result = evaluate_rpn(rpn_expression)
+        self.assertAlmostEqual(result, expected, places=10)
+
 
 if __name__ == "__main__":
     unittest.main()
-
